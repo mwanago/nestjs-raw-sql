@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import {
   ConfigurableDatabaseModule,
   CONNECTION_POOL,
@@ -8,6 +8,7 @@ import DatabaseOptions from './databaseOptions';
 import { Pool } from 'pg';
 import DatabaseService from './database.service';
 
+@Global()
 @Module({
   exports: [DatabaseService],
   providers: [
