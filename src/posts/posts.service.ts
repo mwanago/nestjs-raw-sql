@@ -10,6 +10,10 @@ export class PostsService {
     return this.postsRepository.getAll();
   }
 
+  getPostById(id: number) {
+    return this.postsRepository.getById(id);
+  }
+
   createPost(postData: CreatePostDto) {
     return this.postsRepository.create(postData);
   }

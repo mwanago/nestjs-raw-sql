@@ -15,6 +15,20 @@ class PostsRepository {
     return plainToInstance(PostModel, databaseResponse.rows);
   }
 
+  async getById(id: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT * FROM posts WHERE id=$1
+    `,
+      [id],
+    );
+    const entity = databaseResponse.rows[0];
+    if (!entity) {
+      throw new NotFoundException();
+    }
+    return plainToInstance(PostModel, entity);
+  }
+
   async create(postData: CreatePostDto) {
     const databaseResponse = await this.databaseService.runQuery(
       `

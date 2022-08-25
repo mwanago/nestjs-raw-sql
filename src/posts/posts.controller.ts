@@ -8,17 +8,22 @@ export default class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  async getPosts() {
+  getPosts() {
     return this.postsService.getPosts();
   }
 
+  @Get(':id')
+  getPostById(@Param() { id }: FindOneParams) {
+    return this.postsService.getPostById(id);
+  }
+
   @Post()
-  async createPost(@Body() postData: CreatePostDto) {
+  createPost(@Body() postData: CreatePostDto) {
     return this.postsService.createPost(postData);
   }
 
   @Delete(':id')
-  async deletePost(@Param() { id }: FindOneParams) {
+  deletePost(@Param() { id }: FindOneParams) {
     return this.postsService.deletePost(id);
   }
 }
