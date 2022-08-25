@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import PostsRepository from './posts.repository';
+import CreatePostDto from './dto/createPost.dto';
 
 @Injectable()
 export class PostsService {
@@ -9,7 +10,7 @@ export class PostsService {
     return this.postsRepository.getAll();
   }
 
-  async countPosts() {
-    return this.postsRepository.count();
+  createPost(postData: CreatePostDto) {
+    return this.postsRepository.create(postData);
   }
 }
