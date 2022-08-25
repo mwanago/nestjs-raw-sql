@@ -13,4 +13,8 @@ export class PostsService {
   createPost(postData: CreatePostDto) {
     return this.postsRepository.create(postData);
   }
+
+  deletePost(id: number) {
+    return this.postsRepository.delete(id);
+  }
 }

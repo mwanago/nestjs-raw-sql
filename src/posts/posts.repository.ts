@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import { plainToInstance } from 'class-transformer';
 import PostModel from './post.model';
@@ -29,6 +29,17 @@ class PostsRepository {
       [postData.title, postData.content],
     );
     return plainToInstance(PostModel, databaseResponse.rows[0]);
+  }
+
+  async delete(id: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `DELETE FROM posts WHERE id=$1`,
+      [id],
+    );
+    if (databaseResponse.rowCount === 0) {
+      throw new NotFoundException();
+    }
+    return;
   }
 
   async count() {

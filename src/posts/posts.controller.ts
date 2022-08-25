@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import CreatePostDto from './dto/createPost.dto';
+import FindOneParams from '../utils/findOneParams';
 
 @Controller('posts')
 export default class PostsController {
@@ -14,5 +15,10 @@ export default class PostsController {
   @Post()
   async createPost(@Body() postData: CreatePostDto) {
     return this.postsService.createPost(postData);
+  }
+
+  @Delete(':id')
+  async deletePost(@Param() { id }: FindOneParams) {
+    return this.postsService.deletePost(id);
   }
 }
