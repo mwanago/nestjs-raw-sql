@@ -3,6 +3,7 @@ import { PostsService } from './posts.service';
 import PostsController from './posts.controller';
 import DatabaseModule from '../database/database.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import PostsRepository from './posts.repository';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [PostsController],
-  providers: [PostsService],
+  providers: [PostsService, PostsRepository],
 })
 export class PostsModule {}

@@ -7,8 +7,7 @@ class DatabaseService {
   constructor(@Inject(CONNECTION_POOL) private readonly pool: Pool) {}
 
   async runQuery(query: string, params?: unknown[]) {
-    const queryResponse = await this.pool.query(query, params);
-    return queryResponse.rows;
+    return this.pool.query(query, params);
   }
 }
 

@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import DatabaseService from '../database/database.service';
+import PostsRepository from './posts.repository';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(private readonly postsRepository: PostsRepository) {}
 
   getPosts() {
-    return this.databaseService.runQuery(`
-      SELECT * FROM posts
-    `);
+    return this.postsRepository.getAll();
+  }
+
+  async countPosts() {
+    return this.postsRepository.count();
   }
 }
