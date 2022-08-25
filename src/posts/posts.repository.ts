@@ -70,7 +70,6 @@ class PostsRepository {
     if (databaseResponse.rowCount === 0) {
       throw new NotFoundException();
     }
-    return;
   }
 
   async count() {
