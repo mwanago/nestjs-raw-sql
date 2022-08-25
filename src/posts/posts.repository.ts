@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
+import { plainToInstance } from 'class-transformer';
+import PostModel from './post.model';
 
 @Injectable()
 class PostsRepository {
@@ -9,7 +11,7 @@ class PostsRepository {
     const databaseResponse = await this.databaseService.runQuery(`
       SELECT * FROM posts
     `);
-    return databaseResponse.rows;
+    return plainToInstance(PostModel, databaseResponse.rows);
   }
 
   async count() {

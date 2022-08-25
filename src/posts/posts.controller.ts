@@ -1,7 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  UseInterceptors,
+} from '@nestjs/common';
 import { PostsService } from './posts.service';
 
 @Controller('posts')
+@UseInterceptors(ClassSerializerInterceptor)
 export default class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
