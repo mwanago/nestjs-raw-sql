@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import PostsRepository from './posts.repository';
-import CreatePostDto from './dto/createPost.dto';
+import PostDto from './post.dto';
 
 @Injectable()
 export class PostsService {
@@ -14,8 +14,12 @@ export class PostsService {
     return this.postsRepository.getById(id);
   }
 
-  createPost(postData: CreatePostDto) {
+  createPost(postData: PostDto) {
     return this.postsRepository.create(postData);
+  }
+
+  updatePost(id: number, postData: PostDto) {
+    return this.postsRepository.update(id, postData);
   }
 
   deletePost(id: number) {
