@@ -71,13 +71,6 @@ class PostsRepository {
       throw new NotFoundException();
     }
   }
-
-  async count() {
-    const databaseService = await this.databaseService.runQuery(`
-      SELECT COUNT(*) FROM posts
-    `);
-    return databaseService.rowCount;
-  }
 }
 
 export default PostsRepository;
