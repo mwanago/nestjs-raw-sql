@@ -1,17 +1,20 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   Param,
   Post,
   Put,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import FindOneParams from '../utils/findOneParams';
 import PostDto from './post.dto';
 
 @Controller('posts')
+@UseInterceptors(ClassSerializerInterceptor)
 export default class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
