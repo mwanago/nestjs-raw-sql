@@ -39,7 +39,55 @@ class UsersRepository {
     return plainToInstance(UserModel, entity);
   }
 
+  private async createUserWithAddress(userData: CreateUserDto) {
+    try {
+      const databaseResponse = await this.databaseService.runQuery(
+        `
+      WITH created_address AS (
+        INSERT INTO addresses (
+          street,
+          city,
+          country
+        ) VALUES (
+          $1,
+          $2,
+          $3
+        ) RETURNING *
+      )
+      INSERT INTO users (
+        email,
+        name,
+        password,
+        address_id
+      ) VALUES (
+        $4,
+        $5,
+        $6,
+        (SELECT id from created_address)
+      ) RETURNING *
+    `,
+        [
+          userData.address.street,
+          userData.address.city,
+          userData.address.country,
+          userData.email,
+          userData.name,
+          userData.password,
+        ],
+      );
+      return plainToInstance(UserModel, databaseResponse.rows[0]);
+    } catch (error) {
+      if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
+        throw new UserAlreadyExistsException(userData.email);
+      }
+      throw error;
+    }
+  }
+
   async create(userData: CreateUserDto) {
+    if (userData.address) {
+      return this.createUserWithAddress(userData);
+    }
     try {
       const databaseResponse = await this.databaseService.runQuery(
         `
