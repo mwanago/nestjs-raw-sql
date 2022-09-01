@@ -14,7 +14,11 @@ class UsersRepository {
   async getByEmail(email: string) {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT * FROM users WHERE email=$1
+      SELECT users.*,
+        addresses.street as address_street, addresses.city as address_city, addresses.country as address_country
+        FROM users
+        LEFT JOIN addresses ON users.address_id = addresses.id
+        WHERE email=$1
     `,
       [email],
     );
@@ -22,21 +26,25 @@ class UsersRepository {
     if (!entity) {
       throw new NotFoundException();
     }
-    return plainToInstance(UserModel, entity);
+    return new UserModel(entity);
   }
 
   async getById(id: number) {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT * FROM users WHERE id=$1
-    `,
+        SELECT users.*,
+          addresses.street as address_street, addresses.city as address_city, addresses.country as address_country
+          FROM users
+          LEFT JOIN addresses ON users.address_id = addresses.id
+          WHERE users.id=$1
+      `,
       [id],
     );
     const entity = databaseResponse.rows[0];
     if (!entity) {
       throw new NotFoundException();
     }
-    return plainToInstance(UserModel, entity);
+    return new UserModel(entity);
   }
 
   private async createUserWithAddress(userData: CreateUserDto) {
@@ -63,7 +71,7 @@ class UsersRepository {
         $4,
         $5,
         $6,
-        (SELECT id from created_address)
+        (SELECT id FROM created_address)
       ) RETURNING *
     `,
         [
@@ -75,7 +83,7 @@ class UsersRepository {
           userData.password,
         ],
       );
-      return plainToInstance(UserModel, databaseResponse.rows[0]);
+      return new UserModel(databaseResponse.rows[0]);
     } catch (error) {
       if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
         throw new UserAlreadyExistsException(userData.email);
