@@ -15,7 +15,7 @@ class UsersRepository {
     const databaseResponse = await this.databaseService.runQuery(
       `
       SELECT users.*,
-        addresses.street as address_street, addresses.city as address_city, addresses.country as address_country
+        addresses.street AS address_street, addresses.city AS address_city, addresses.country AS address_country
         FROM users
         LEFT JOIN addresses ON users.address_id = addresses.id
         WHERE email=$1
@@ -33,7 +33,7 @@ class UsersRepository {
     const databaseResponse = await this.databaseService.runQuery(
       `
         SELECT users.*,
-          addresses.street as address_street, addresses.city as address_city, addresses.country as address_country
+          addresses.street AS address_street, addresses.city AS address_city, addresses.country AS address_country
           FROM users
           LEFT JOIN addresses ON users.address_id = addresses.id
           WHERE users.id=$1
@@ -51,29 +51,34 @@ class UsersRepository {
     try {
       const databaseResponse = await this.databaseService.runQuery(
         `
-      WITH created_address AS (
-        INSERT INTO addresses (
-          street,
-          city,
-          country
-        ) VALUES (
-          $1,
-          $2,
-          $3
-        ) RETURNING *
-      )
-      INSERT INTO users (
-        email,
-        name,
-        password,
-        address_id
-      ) VALUES (
-        $4,
-        $5,
-        $6,
-        (SELECT id FROM created_address)
-      ) RETURNING *
-    `,
+        WITH created_address AS (
+          INSERT INTO addresses (
+            street,
+            city,
+            country
+          ) VALUES (
+            $1,
+            $2,
+            $3
+          ) RETURNING *
+        ),
+        created_user AS (
+          INSERT INTO users (
+            email,
+            name,
+            password,
+            address_id
+          ) VALUES (
+            $4,
+            $5,
+            $6,
+            (SELECT id FROM created_address)
+          ) RETURNING *
+        )
+        SELECT created_user.id AS id, created_user.email AS email, created_user.name AS name, created_user.password AS password,
+          created_address.id AS address_id, street AS address_street, city AS address_city, country AS address_country
+          FROM created_user, created_address
+      `,
         [
           userData.address.street,
           userData.address.city,
