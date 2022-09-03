@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
       country text
     );
     ALTER TABLE users
-        ADD COLUMN address_id int UNIQUE;
+        ADD COLUMN address_id int UNIQUE REFERENCES addresses(id);
   `);
 }
 
