@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
-import { plainToInstance } from 'class-transformer';
 import PostModel from './post.model';
 import PostDto from './post.dto';
 
@@ -12,7 +11,21 @@ class PostsRepository {
     const databaseResponse = await this.databaseService.runQuery(`
       SELECT * FROM posts
     `);
-    return plainToInstance(PostModel, databaseResponse.rows);
+    return databaseResponse.rows.map(
+      (databaseRow) => new PostModel(databaseRow),
+    );
+  }
+
+  async getByAuthorId(authorId: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT * FROM posts WHERE author_id=$1
+    `,
+      [authorId],
+    );
+    return databaseResponse.rows.map(
+      (databaseRow) => new PostModel(databaseRow),
+    );
   }
 
   async getById(id: number) {
@@ -26,23 +39,25 @@ class PostsRepository {
     if (!entity) {
       throw new NotFoundException();
     }
-    return plainToInstance(PostModel, entity);
+    return new PostModel(entity);
   }
 
-  async create(postData: PostDto) {
+  async create(postData: PostDto, authorId: number) {
     const databaseResponse = await this.databaseService.runQuery(
       `
       INSERT INTO posts (
         title,
-        post_content
+        post_content,
+        author_id
       ) VALUES (
         $1,
-        $2
+        $2,
+        $3
       ) RETURNING *
     `,
-      [postData.title, postData.content],
+      [postData.title, postData.content, authorId],
     );
-    return plainToInstance(PostModel, databaseResponse.rows[0]);
+    return new PostModel(databaseResponse.rows[0]);
   }
 
   async update(id: number, postData: PostDto) {
@@ -59,7 +74,7 @@ class PostsRepository {
     if (!entity) {
       throw new NotFoundException();
     }
-    return plainToInstance(PostModel, entity);
+    return new PostModel(entity);
   }
 
   async delete(id: number) {
