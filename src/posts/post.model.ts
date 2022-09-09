@@ -1,4 +1,4 @@
-interface PostModelData {
+export interface PostModelData {
   id: number;
   title: string;
   post_content: string;

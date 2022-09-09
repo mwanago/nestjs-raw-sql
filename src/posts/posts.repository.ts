@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import PostModel from './post.model';
 import PostDto from './post.dto';
+import PostWithAuthorModel from './postWithAuthor.model';
 
 @Injectable()
 class PostsRepository {
@@ -40,6 +41,27 @@ class PostsRepository {
       throw new NotFoundException();
     }
     return new PostModel(entity);
+  }
+
+  async getWithAuthor(postId: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT
+        posts.id AS id, posts.title AS title, posts.post_content AS post_content, posts.author_id as author_id,
+        users.id AS user_id, users.email AS user_email, users.name AS user_name, users.password AS user_password,
+        addresses.id AS address_id, addresses.street AS address_street, addresses.city AS address_city, addresses.country AS address_country
+      FROM posts
+      JOIN users ON posts.author_id = users.id
+      LEFT JOIN addresses ON users.address_id = addresses.id
+      WHERE posts.id=$1
+      `,
+      [postId],
+    );
+    const entity = databaseResponse.rows[0];
+    if (!entity) {
+      throw new NotFoundException();
+    }
+    return new PostWithAuthorModel(entity);
   }
 
   async create(postData: PostDto, authorId: number) {

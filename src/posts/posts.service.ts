@@ -14,7 +14,7 @@ export class PostsService {
   }
 
   getPostById(id: number) {
-    return this.postsRepository.getById(id);
+    return this.postsRepository.getWithAuthor(id);
   }
 
   createPost(postData: PostDto, authorId: number) {

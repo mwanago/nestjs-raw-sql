@@ -3,17 +3,17 @@ import AddressModel from './address.model';
 
 type UserModelData = {
   id: number;
-  name: number;
+  name: string;
   email: string;
   password: string;
-  address_id?: number;
-  address_street?: string;
-  address_city?: string;
-  address_country?: string;
+  address_id: number | null;
+  address_street: string | null;
+  address_city: string | null;
+  address_country: string | null;
 };
 class UserModel {
   id: number;
-  name: number;
+  name: string;
   email: string;
   @Exclude()
   password: string;
