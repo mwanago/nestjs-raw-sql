@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import DatabaseModule from './database/database.module';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthenticationModule } from './authentication/authentication.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
       }),
     }),
     AuthenticationModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [
