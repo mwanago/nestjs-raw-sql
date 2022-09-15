@@ -98,12 +98,10 @@ class PostsRepository {
       ),
       created_relationships AS (
         INSERT INTO categories_posts (
-          post_id,
-          category_id
-        ) VALUES (
-          (SELECT id FROM created_post),
-          unnest($4::int[])
+          post_id, category_id
         )
+          SELECT created_post.id AS post_id, unnest($4::int[]) AS category_id
+          FROM created_post
       )
       SELECT * from created_post
     `,
