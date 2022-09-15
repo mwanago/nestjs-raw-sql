@@ -82,6 +82,36 @@ class PostsRepository {
     return new PostModel(databaseResponse.rows[0]);
   }
 
+  async createWithCategories(postData: PostDto, authorId: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      WITH created_post AS (
+        INSERT INTO posts (
+          title,
+          post_content,
+          author_id
+        ) VALUES (
+          $1,
+          $2,
+          $3
+        ) RETURNING *
+      ),
+      created_relationships AS (
+        INSERT INTO categories_posts (
+          post_id,
+          category_id
+        ) VALUES (
+          (SELECT id FROM created_post),
+          unnest($4::int[])
+        )
+      )
+      SELECT * from created_post
+    `,
+      [postData.title, postData.content, authorId, postData.categoryIds],
+    );
+    return new PostModel(databaseResponse.rows[0]);
+  }
+
   async update(id: number, postData: PostDto) {
     const databaseResponse = await this.databaseService.runQuery(
       `
