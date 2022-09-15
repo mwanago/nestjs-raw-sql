@@ -3,6 +3,7 @@ import DatabaseService from '../database/database.service';
 import PostModel from './post.model';
 import PostDto from './post.dto';
 import PostWithAuthorModel from './postWithAuthor.model';
+import PostWithCategoryIdsModel from './postWithCategoryIds.model';
 
 @Injectable()
 class PostsRepository {
@@ -101,13 +102,13 @@ class PostsRepository {
           post_id, category_id
         )
           SELECT created_post.id AS post_id, unnest($4::int[]) AS category_id
-          FROM created_post
+          FROM created_post 
       )
-      SELECT * from created_post
+      SELECT *, $4 as category_ids FROM created_post
     `,
       [postData.title, postData.content, authorId, postData.categoryIds],
     );
-    return new PostModel(databaseResponse.rows[0]);
+    return new PostWithCategoryIdsModel(databaseResponse.rows[0]);
   }
 
   async update(id: number, postData: PostDto) {
