@@ -15,8 +15,8 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   return knex.raw(`
-    DROP TABLE addresses;
     ALTER TABLE users
         DROP COLUMN address_id;
+    DROP TABLE addresses;
   `);
 }

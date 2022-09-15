@@ -11,7 +11,7 @@ class CategoriesService {
   }
 
   getCategoryById(id: number) {
-    return this.categoriesRepository.getById(id);
+    return this.categoriesRepository.getCategoryWithPosts(id);
   }
 
   createCategory(categoryData: CategoryDto) {

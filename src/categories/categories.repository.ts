@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import CategoryModel from './category.model';
 import CategoryDto from './category.dto';
+import CategoryWithPostsModel from './categoryWithPosts.model';
 
 @Injectable()
 class CategoriesRepository {
@@ -28,6 +29,33 @@ class CategoriesRepository {
       throw new NotFoundException();
     }
     return new CategoryModel(entity);
+  }
+
+  async getCategoryWithPosts(categoryId: number) {
+    const categoriesDatabaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT * FROM categories WHERE id=$1
+    `,
+      [categoryId],
+    );
+    if (!categoriesDatabaseResponse.rows[0]) {
+      throw new NotFoundException();
+    }
+
+    const postsDatabaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT posts.id AS id, posts.title AS title, posts.post_content AS post_content, posts.author_id AS author_id
+      FROM categories_posts
+      JOIN posts ON posts.id=categories_posts.post_id
+      WHERE category_id = $1
+    `,
+      [categoryId],
+    );
+
+    return new CategoryWithPostsModel({
+      ...categoriesDatabaseResponse.rows[0],
+      posts: postsDatabaseResponse.rows,
+    });
   }
 
   async create(categoryData: CategoryDto) {
