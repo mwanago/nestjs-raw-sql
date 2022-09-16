@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import PostModel from './post.model';
 import PostDto from './post.dto';
-import PostWithAuthorModel from './postWithAuthor.model';
 import PostWithCategoryIdsModel from './postWithCategoryIds.model';
+import PostWithDetails from './postWithDetails.model';
 
 @Injectable()
 class PostsRepository {
@@ -44,8 +44,8 @@ class PostsRepository {
     return new PostModel(entity);
   }
 
-  async getWithAuthor(postId: number) {
-    const databaseResponse = await this.databaseService.runQuery(
+  async getWithDetails(postId: number) {
+    const postResponse = await this.databaseService.runQuery(
       `
       SELECT
         posts.id AS id, posts.title AS title, posts.post_content AS post_content, posts.author_id as author_id,
@@ -58,11 +58,25 @@ class PostsRepository {
       `,
       [postId],
     );
-    const entity = databaseResponse.rows[0];
-    if (!entity) {
+    const postEntity = postResponse.rows[0];
+    if (!postEntity) {
       throw new NotFoundException();
     }
-    return new PostWithAuthorModel(entity);
+
+    const categoryIdsResponse = await this.databaseService.runQuery(
+      `
+      SELECT ARRAY(
+        SELECT category_id FROM categories_posts
+        WHERE post_id = $1
+      ) AS category_ids
+    `,
+      [postId],
+    );
+
+    return new PostWithDetails({
+      ...postEntity,
+      category_ids: categoryIdsResponse.rows[0].category_ids,
+    });
   }
 
   async create(postData: PostDto, authorId: number) {
