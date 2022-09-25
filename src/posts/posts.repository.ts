@@ -178,11 +178,10 @@ class PostsRepository {
     }
   }
 
-  private async updateCategories(
+  private async getCategoryIds(
     client: PoolClient,
     postId: number,
-    newCategoryIds: number[],
-  ) {
+  ): Promise<number[]> {
     const categoryIdsResponse = await client.query(
       `
       SELECT ARRAY(
@@ -192,8 +191,15 @@ class PostsRepository {
     `,
       [postId],
     );
-    const existingCategoryIds: number[] =
-      categoryIdsResponse.rows[0].category_ids;
+    return categoryIdsResponse.rows[0].category_ids;
+  }
+
+  private async updateCategories(
+    client: PoolClient,
+    postId: number,
+    newCategoryIds: number[],
+  ) {
+    const existingCategoryIds = await this.getCategoryIds(client, postId);
 
     const categoryIdsToRemove = getDifferenceBetweenArrays(
       existingCategoryIds,
@@ -208,15 +214,7 @@ class PostsRepository {
     await this.removeCategories(client, postId, categoryIdsToRemove);
     await this.addCategories(client, postId, categoryIdsToAdd);
 
-    return client.query(
-      `
-      SELECT ARRAY(
-        SELECT category_id FROM categories_posts
-        WHERE post_id = $1
-      ) AS category_ids
-    `,
-      [postId],
-    );
+    return this.getCategoryIds(client, postId);
   }
 
   async update(id: number, postData: PostDto) {
@@ -241,7 +239,7 @@ class PostsRepository {
 
       const newCategoryIds = postData.categoryIds || [];
 
-      const categoryIdsResponse = await this.updateCategories(
+      const categoryIds = await this.updateCategories(
         client,
         id,
         newCategoryIds,
@@ -249,7 +247,7 @@ class PostsRepository {
 
       return new PostWithCategoryIdsModel({
         ...entity,
-        category_ids: categoryIdsResponse.rows[0].category_ids,
+        category_ids: categoryIds,
       });
     } catch (error) {
       await client.query('ROLLBACK;');
