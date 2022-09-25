@@ -133,7 +133,7 @@ class PostsRepository {
     return new PostWithCategoryIdsModel(databaseResponse.rows[0]);
   }
 
-  private async removeCategories(
+  private async removeCategoriesFromPost(
     client: PoolClient,
     postId: number,
     categoryIdsToRemove: number[],
@@ -149,7 +149,7 @@ class PostsRepository {
     );
   }
 
-  private async addCategories(
+  private async addCategoriesToPost(
     client: PoolClient,
     postId: number,
     categoryIdsToAdd: number[],
@@ -178,7 +178,7 @@ class PostsRepository {
     }
   }
 
-  private async getCategoryIds(
+  private async getCategoryIdsRelatedToPost(
     client: PoolClient,
     postId: number,
   ): Promise<number[]> {
@@ -199,7 +199,10 @@ class PostsRepository {
     postId: number,
     newCategoryIds: number[],
   ) {
-    const existingCategoryIds = await this.getCategoryIds(client, postId);
+    const existingCategoryIds = await this.getCategoryIdsRelatedToPost(
+      client,
+      postId,
+    );
 
     const categoryIdsToRemove = getDifferenceBetweenArrays(
       existingCategoryIds,
@@ -211,10 +214,10 @@ class PostsRepository {
       existingCategoryIds,
     );
 
-    await this.removeCategories(client, postId, categoryIdsToRemove);
-    await this.addCategories(client, postId, categoryIdsToAdd);
+    await this.removeCategoriesFromPost(client, postId, categoryIdsToRemove);
+    await this.addCategoriesToPost(client, postId, categoryIdsToAdd);
 
-    return this.getCategoryIds(client, postId);
+    return this.getCategoryIdsRelatedToPost(client, postId);
   }
 
   async update(id: number, postData: PostDto) {
