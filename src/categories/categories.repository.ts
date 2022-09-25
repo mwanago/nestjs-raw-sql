@@ -90,12 +90,43 @@ class CategoriesRepository {
   }
 
   async delete(id: number) {
-    const databaseResponse = await this.databaseService.runQuery(
-      `DELETE FROM categories WHERE id=$1`,
-      [id],
-    );
-    if (databaseResponse.rowCount === 0) {
-      throw new NotFoundException();
+    const poolClient = await this.databaseService.getPoolClient();
+
+    try {
+      await poolClient.query('BEGIN;');
+
+      // Disconnecting posts from a given category
+      await poolClient.query(
+        `
+        DELETE FROM categories_posts
+          WHERE category_id=$1; 
+        `,
+        [id],
+      );
+
+      // Disconnecting posts from a given category
+      const categoriesResponse = await poolClient.query(
+        `
+        DELETE FROM categories
+          WHERE id=$1;
+        `,
+        [id],
+      );
+
+      if (categoriesResponse.rowCount === 0) {
+        throw new NotFoundException();
+      }
+
+      await poolClient.query(`
+        COMMIT;
+      `);
+    } catch (error) {
+      await poolClient.query(`
+        ROLLBACK;
+      `);
+      throw error;
+    } finally {
+      poolClient.release();
     }
   }
 }

@@ -9,6 +9,10 @@ class DatabaseService {
   async runQuery(query: string, params?: unknown[]) {
     return this.pool.query(query, params);
   }
+
+  async getPoolClient() {
+    return this.pool.connect();
+  }
 }
 
 export default DatabaseService;
