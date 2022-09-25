@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import PostModel from './post.model';
 import PostDto from './post.dto';
@@ -129,6 +133,51 @@ class PostsRepository {
     return new PostWithCategoryIdsModel(databaseResponse.rows[0]);
   }
 
+  private async removeCategories(
+    client: PoolClient,
+    postId: number,
+    categoryIdsToRemove: number[],
+  ) {
+    if (!categoryIdsToRemove.length) {
+      return;
+    }
+    return client.query(
+      `
+      DELETE FROM categories_posts WHERE post_id = $1 AND category_id = ANY($2::int[])
+    `,
+      [postId, categoryIdsToRemove],
+    );
+  }
+
+  private async addCategories(
+    client: PoolClient,
+    postId: number,
+    categoryIdsToAdd: number[],
+  ) {
+    if (!categoryIdsToAdd.length) {
+      return;
+    }
+    try {
+      await client.query(
+        `
+      INSERT INTO categories_posts (
+        post_id, category_id
+      )
+        SELECT $1 AS post_id, unnest($2::int[]) AS category_id
+    `,
+        [postId, categoryIdsToAdd],
+      );
+    } catch (error) {
+      if (
+        isRecord(error) &&
+        error.code === PostgresErrorCode.ForeignKeyViolation
+      ) {
+        throw new BadRequestException('Category not found');
+      }
+      throw error;
+    }
+  }
+
   private async updateCategories(
     client: PoolClient,
     postId: number,
@@ -156,32 +205,8 @@ class PostsRepository {
       existingCategoryIds,
     );
 
-    await client.query(
-      `
-      DELETE FROM categories_posts WHERE post_id = $1 AND category_id = ANY($2::int[])
-    `,
-      [postId, categoryIdsToRemove],
-    );
-
-    try {
-      await client.query(
-        `
-      INSERT INTO categories_posts (
-        post_id, category_id
-      )
-        SELECT $1 AS post_id, unnest($2::int[]) AS category_id
-    `,
-        [postId, categoryIdsToAdd],
-      );
-    } catch (error) {
-      if (
-        isRecord(error) &&
-        error.code === PostgresErrorCode.ForeignKeyViolation
-      ) {
-        throw new NotFoundException('Category not found');
-      }
-      throw error;
-    }
+    await this.removeCategories(client, postId, categoryIdsToRemove);
+    await this.addCategories(client, postId, categoryIdsToAdd);
 
     return client.query(
       `
