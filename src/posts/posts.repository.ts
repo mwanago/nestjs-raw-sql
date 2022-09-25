@@ -4,6 +4,10 @@ import PostModel from './post.model';
 import PostDto from './post.dto';
 import PostWithCategoryIdsModel from './postWithCategoryIds.model';
 import PostWithDetails from './postWithDetails.model';
+import { PoolClient } from 'pg';
+import PostgresErrorCode from '../database/postgresErrorCode.enum';
+import isRecord from '../utils/isRecord';
+import getDifferenceBetweenArrays from '../utils/getDifferenceBetweenArrays';
 
 @Injectable()
 class PostsRepository {
@@ -125,21 +129,109 @@ class PostsRepository {
     return new PostWithCategoryIdsModel(databaseResponse.rows[0]);
   }
 
-  async update(id: number, postData: PostDto) {
-    const databaseResponse = await this.databaseService.runQuery(
+  private async updateCategories(
+    client: PoolClient,
+    postId: number,
+    newCategoryIds: number[],
+  ) {
+    const categoryIdsResponse = await client.query(
       `
-      UPDATE posts
-      SET title = $2, post_content = $3
-      WHERE id = $1
-      RETURNING *
+      SELECT ARRAY(
+        SELECT category_id FROM categories_posts
+        WHERE post_id = $1
+      ) AS category_ids
     `,
-      [id, postData.title, postData.content],
+      [postId],
     );
-    const entity = databaseResponse.rows[0];
-    if (!entity) {
-      throw new NotFoundException();
+    const existingCategoryIds: number[] =
+      categoryIdsResponse.rows[0].category_ids;
+
+    const categoryIdsToRemove = getDifferenceBetweenArrays(
+      existingCategoryIds,
+      newCategoryIds,
+    );
+
+    const categoryIdsToAdd = getDifferenceBetweenArrays(
+      newCategoryIds,
+      existingCategoryIds,
+    );
+
+    await client.query(
+      `
+      DELETE FROM categories_posts WHERE post_id = $1 AND category_id = ANY($2::int[])
+    `,
+      [postId, categoryIdsToRemove],
+    );
+
+    try {
+      await client.query(
+        `
+      INSERT INTO categories_posts (
+        post_id, category_id
+      )
+        SELECT $1 AS post_id, unnest($2::int[]) AS category_id
+    `,
+        [postId, categoryIdsToAdd],
+      );
+    } catch (error) {
+      if (
+        isRecord(error) &&
+        error.code === PostgresErrorCode.ForeignKeyViolation
+      ) {
+        throw new NotFoundException('Category not found');
+      }
+      throw error;
     }
-    return new PostModel(entity);
+
+    return client.query(
+      `
+      SELECT ARRAY(
+        SELECT category_id FROM categories_posts
+        WHERE post_id = $1
+      ) AS category_ids
+    `,
+      [postId],
+    );
+  }
+
+  async update(id: number, postData: PostDto) {
+    const client = await this.databaseService.getPoolClient();
+
+    try {
+      await client.query('BEGIN;');
+
+      const databaseResponse = await client.query(
+        `
+        UPDATE posts
+        SET title = $2, post_content = $3
+        WHERE id = $1
+        RETURNING *
+    `,
+        [id, postData.title, postData.content],
+      );
+      const entity = databaseResponse.rows[0];
+      if (!entity) {
+        throw new NotFoundException();
+      }
+
+      const newCategoryIds = postData.categoryIds || [];
+
+      const categoryIdsResponse = await this.updateCategories(
+        client,
+        id,
+        newCategoryIds,
+      );
+
+      return new PostWithCategoryIdsModel({
+        ...entity,
+        category_ids: categoryIdsResponse.rows[0].category_ids,
+      });
+    } catch (error) {
+      await client.query('ROLLBACK;');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async delete(id: number) {
