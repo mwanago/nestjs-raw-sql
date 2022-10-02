@@ -17,25 +17,49 @@ import getDifferenceBetweenArrays from '../utils/getDifferenceBetweenArrays';
 class PostsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async getAll() {
-    const databaseResponse = await this.databaseService.runQuery(`
-      SELECT * FROM posts
-    `);
-    return databaseResponse.rows.map(
-      (databaseRow) => new PostModel(databaseRow),
-    );
-  }
-
-  async getByAuthorId(authorId: number) {
+  async get(offset = 0, limit: number | null = null) {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT * FROM posts WHERE author_id=$1
+      SELECT id, title, COUNT(*) OVER()::int AS total_posts_count FROM posts
+      ORDER BY id ASC
+      OFFSET $1
+      LIMIT $2
     `,
-      [authorId],
+      [offset, limit],
     );
-    return databaseResponse.rows.map(
+    const items = databaseResponse.rows.map(
       (databaseRow) => new PostModel(databaseRow),
     );
+    const count = databaseResponse.rows[0]?.total_posts_count || 0;
+    return {
+      items,
+      count,
+    };
+  }
+
+  async getByAuthorId(
+    authorId: number,
+    offset = 0,
+    limit: number | null = null,
+  ) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT *, COUNT(*) OVER()::int AS total_posts_count FROM posts
+      WHERE author_id=$1
+      ORDER BY id ASC
+      OFFSET $2
+      LIMIT $3
+    `,
+      [authorId, offset, limit],
+    );
+    const items = databaseResponse.rows.map(
+      (databaseRow) => new PostModel(databaseRow),
+    );
+    const count = databaseResponse.rows[0]?.total_posts_count || 0;
+    return {
+      items,
+      count,
+    };
   }
 
   async getById(id: number) {

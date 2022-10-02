@@ -6,11 +6,11 @@ import PostDto from './post.dto';
 export class PostsService {
   constructor(private readonly postsRepository: PostsRepository) {}
 
-  getPosts(authorId?: number) {
+  getPosts(authorId?: number, offset?: number, limit?: number) {
     if (authorId) {
-      return this.postsRepository.getByAuthorId(authorId);
+      return this.postsRepository.getByAuthorId(authorId, offset, limit);
     }
-    return this.postsRepository.getAll();
+    return this.postsRepository.get(offset, limit);
   }
 
   getPostById(id: number) {

@@ -18,6 +18,7 @@ import PostDto from './post.dto';
 import GetPostsByAuthorQuery from './getPostsByAuthorQuery';
 import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
 import RequestWithUser from '../authentication/requestWithUser.interface';
+import PaginationParams from '../utils/paginationParams';
 
 @Controller('posts')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -25,8 +26,11 @@ export default class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  getPosts(@Query() { authorId }: GetPostsByAuthorQuery) {
-    return this.postsService.getPosts(authorId);
+  getPosts(
+    @Query() { authorId }: GetPostsByAuthorQuery,
+    @Query() { offset, limit }: PaginationParams,
+  ) {
+    return this.postsService.getPosts(authorId, offset, limit);
   }
 
   @Get(':id')
