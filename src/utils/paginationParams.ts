@@ -13,6 +13,12 @@ class PaginationParams {
   @IsNumber()
   @Min(1)
   limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  idsToSkip?: number;
 }
 
 export default PaginationParams;

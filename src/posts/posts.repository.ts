@@ -17,15 +17,22 @@ import getDifferenceBetweenArrays from '../utils/getDifferenceBetweenArrays';
 class PostsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async get(offset = 0, limit: number | null = null) {
+  async get(offset = 0, limit: number | null = null, idsToSkip = 0) {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT id, title, COUNT(*) OVER()::int AS total_posts_count FROM posts
-      ORDER BY id ASC
-      OFFSET $1
-      LIMIT $2
+      WITH selected_posts AS (
+        SELECT * FROM posts
+        WHERE id > $3
+        ORDER BY id ASC
+        OFFSET $1
+        LIMIT $2
+      ),
+      total_posts_count_response AS (
+        SELECT COUNT(*)::int AS total_posts_count FROM posts
+      )
+      SELECT * FROM selected_posts, total_posts_count_response
     `,
-      [offset, limit],
+      [offset, limit, idsToSkip],
     );
     const items = databaseResponse.rows.map(
       (databaseRow) => new PostModel(databaseRow),
@@ -41,16 +48,24 @@ class PostsRepository {
     authorId: number,
     offset = 0,
     limit: number | null = null,
+    idsToSkip = 0,
   ) {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT *, COUNT(*) OVER()::int AS total_posts_count FROM posts
-      WHERE author_id=$1
-      ORDER BY id ASC
-      OFFSET $2
-      LIMIT $3
+      WITH selected_posts AS (
+        SELECT * FROM posts
+        WHERE author_id=$1 AND id > $4
+        ORDER BY id ASC
+        OFFSET $2
+        LIMIT $3
+      ),
+      total_posts_count_response AS (
+        SELECT COUNT(*)::int AS total_posts_count FROM posts
+        WHERE author_id=$1 AND id > $4
+      )
+      SELECT * FROM selected_posts, total_posts_count_response
     `,
-      [authorId, offset, limit],
+      [authorId, offset, limit, idsToSkip],
     );
     const items = databaseResponse.rows.map(
       (databaseRow) => new PostModel(databaseRow),

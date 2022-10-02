@@ -28,9 +28,9 @@ export default class PostsController {
   @Get()
   getPosts(
     @Query() { authorId }: GetPostsByAuthorQuery,
-    @Query() { offset, limit }: PaginationParams,
+    @Query() { offset, limit, idsToSkip }: PaginationParams,
   ) {
-    return this.postsService.getPosts(authorId, offset, limit);
+    return this.postsService.getPosts(authorId, offset, limit, idsToSkip);
   }
 
   @Get(':id')
