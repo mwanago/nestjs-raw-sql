@@ -11,9 +11,10 @@ class PostsStatisticsRepository {
       `
       SELECT
         author_id,
-        count(*) AS posts_count,
+        count(*)::int AS posts_count,
         max(length(post_content)) AS longest_post_length,
-        min(length(post_content)) AS shortest_post_length
+        min(length(post_content)) AS shortest_post_length,
+        sum(length(post_content))::int AS all_posts_content_sum
       FROM posts
       GROUP BY author_id
       ORDER BY posts_count DESC
