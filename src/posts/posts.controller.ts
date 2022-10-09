@@ -33,6 +33,11 @@ export default class PostsController {
     return this.postsService.getPosts(authorId, offset, limit, idsToSkip);
   }
 
+  @Get('statistics')
+  getStatistics() {
+    return this.postsService.getPostAuthorStatistics();
+  }
+
   @Get(':id')
   getPostById(@Param() { id }: FindOneParams) {
     return this.postsService.getPostById(id);

@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import PostsRepository from './posts.repository';
 import PostDto from './post.dto';
+import PostsStatisticsRepository from './postsStatistics.repository';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(
+    private readonly postsRepository: PostsRepository,
+    private readonly postsStatisticsRepository: PostsStatisticsRepository,
+  ) {}
 
   getPosts(
     authorId?: number,
@@ -40,5 +44,9 @@ export class PostsService {
 
   deletePost(id: number) {
     return this.postsRepository.delete(id);
+  }
+
+  getPostAuthorStatistics() {
+    return this.postsStatisticsRepository.getPostsAuthorStatistics();
   }
 }
