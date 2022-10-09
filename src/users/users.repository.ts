@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
-import { plainToInstance } from 'class-transformer';
 import UserModel from './user.model';
 import { CreateUserDto } from './dto/createUser.dto';
 import isRecord from '../utils/isRecord';
@@ -116,7 +115,7 @@ class UsersRepository {
     `,
         [userData.email, userData.name, userData.password],
       );
-      return plainToInstance(UserModel, databaseResponse.rows[0]);
+      return new UserModel(databaseResponse.rows[0]);
     } catch (error) {
       if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
         throw new UserAlreadyExistsException(userData.email);
