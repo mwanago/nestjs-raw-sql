@@ -9,7 +9,12 @@ class PostsStatisticsRepository {
   async getPostsAuthorStatistics() {
     const databaseResponse = await this.databaseService.runQuery(
       `
-      SELECT author_id, COUNT(*) AS posts_count FROM posts
+      SELECT
+        author_id,
+        count(*) AS posts_count,
+        max(length(post_content)) AS longest_post_length,
+        min(length(post_content)) AS shortest_post_length
+      FROM posts
       GROUP BY author_id
       ORDER BY posts_count DESC
     `,
