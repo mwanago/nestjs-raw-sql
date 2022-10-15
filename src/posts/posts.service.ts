@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import PostsRepository from './posts.repository';
 import PostDto from './post.dto';
 import PostsStatisticsRepository from './postsStatistics.repository';
+import PostsSearchRepository from './postsSearch.repository';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postsRepository: PostsRepository,
     private readonly postsStatisticsRepository: PostsStatisticsRepository,
+    private readonly postsSearchRepository: PostsSearchRepository,
   ) {}
 
   getPosts(
@@ -15,13 +17,31 @@ export class PostsService {
     offset?: number,
     limit?: number,
     idsToSkip?: number,
+    searchQuery?: string,
   ) {
+    if (authorId && searchQuery) {
+      return this.postsSearchRepository.searchByAuthor(
+        authorId,
+        offset,
+        limit,
+        idsToSkip,
+        searchQuery,
+      );
+    }
     if (authorId) {
       return this.postsRepository.getByAuthorId(
         authorId,
         offset,
         limit,
         idsToSkip,
+      );
+    }
+    if (searchQuery) {
+      return this.postsSearchRepository.search(
+        offset,
+        limit,
+        idsToSkip,
+        searchQuery,
       );
     }
     return this.postsRepository.get(offset, limit, idsToSkip);

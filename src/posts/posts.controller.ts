@@ -19,6 +19,7 @@ import GetPostsByAuthorQuery from './getPostsByAuthorQuery';
 import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
 import RequestWithUser from '../authentication/requestWithUser.interface';
 import PaginationParams from '../utils/paginationParams';
+import SearchPostsQuery from './searchPostsQuery';
 
 @Controller('posts')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -28,9 +29,16 @@ export default class PostsController {
   @Get()
   getPosts(
     @Query() { authorId }: GetPostsByAuthorQuery,
+    @Query() { search }: SearchPostsQuery,
     @Query() { offset, limit, idsToSkip }: PaginationParams,
   ) {
-    return this.postsService.getPosts(authorId, offset, limit, idsToSkip);
+    return this.postsService.getPosts(
+      authorId,
+      offset,
+      limit,
+      idsToSkip,
+      search,
+    );
   }
 
   @Get('statistics')
