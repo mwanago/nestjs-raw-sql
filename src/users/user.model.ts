@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import AddressModel from './address.model';
+import AddressModel from '../addresses/address.model';
 
 type UserModelData = {
   id: number;

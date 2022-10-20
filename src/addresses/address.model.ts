@@ -1,14 +1,14 @@
 interface AddressModelData {
   id: number;
-  street: string;
-  city: string;
-  country: string;
+  street: string | null;
+  city: string | null;
+  country: string | null;
 }
 class AddressModel {
   id: number;
-  street: string;
-  city: string;
-  country: string;
+  street: string | null;
+  city: string | null;
+  country: string | null;
   constructor(data: AddressModelData) {
     this.id = data.id;
     this.street = data.street;
