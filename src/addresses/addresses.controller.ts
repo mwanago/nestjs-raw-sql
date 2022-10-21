@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import FindOneParams from '../utils/findOneParams';
 import JwtAuthenticationGuard from '../authentication/jwt-authentication.guard';
 import AddressDto from './address.dto';
@@ -13,7 +13,7 @@ export default class AddressesController {
     return this.addressesService.getById(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @UseGuards(JwtAuthenticationGuard)
   update(@Param() { id }: FindOneParams, @Body() addressDto: AddressDto) {
     return this.addressesService.update(id, addressDto);

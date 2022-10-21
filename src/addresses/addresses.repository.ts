@@ -22,14 +22,22 @@ class AddressesRepository {
   }
 
   async update(id: number, addressData: AddressDto) {
+    const { street, city, country } = addressData;
+
     const databaseResponse = await this.databaseService.runQuery(
       `
-      UPDATE addresses
-      SET street = $2, city = $3, country = $4 
-      WHERE id = $1
-      RETURNING *
-    `,
-      [id, addressData.street, addressData.city, addressData.country],
+        WITH used_parameters AS (
+          SELECT $2, $3, $4
+        )
+        UPDATE addresses
+        SET
+        street = ${street !== undefined ? '$2' : 'street'},
+        city = ${city !== undefined ? '$3' : 'city'},
+        country = ${country !== undefined ? '$4' : 'country'} 
+        WHERE id = $1
+        RETURNING *
+      `,
+      [id, street, city, country],
     );
     const entity = databaseResponse.rows[0];
     if (!entity) {
