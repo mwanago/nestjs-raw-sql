@@ -1,8 +1,9 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 class SearchPostsQuery {
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   search?: string;
 }
 

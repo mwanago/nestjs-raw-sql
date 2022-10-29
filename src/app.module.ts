@@ -6,6 +6,7 @@ import DatabaseModule from './database/database.module';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { CategoriesModule } from './categories/categories.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CategoriesModule } from './categories/categories.module';
     }),
     AuthenticationModule,
     CategoriesModule,
+    CommentsModule,
   ],
   controllers: [],
   providers: [
