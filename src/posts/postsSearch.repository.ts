@@ -16,14 +16,14 @@ class PostsSearchRepository {
       `
       WITH selected_posts AS (
         SELECT * FROM posts
-        WHERE id > $3 AND (title ILIKE concat('%', $4::text, '%') OR post_content ILIKE concat('%', $4::text, '%'))
+        WHERE id > $3 AND text_tsvector @@ plainto_tsquery($4)
         ORDER BY id ASC
         OFFSET $1
         LIMIT $2
       ),
       total_posts_count_response AS (
         SELECT COUNT(*)::int AS total_posts_count FROM posts
-        WHERE title ILIKE concat('%', $4::text, '%') OR post_content ILIKE concat('%', $4::text, '%')
+        WHERE text_tsvector @@ plainto_tsquery($4)
       )
       SELECT * FROM selected_posts, total_posts_count_response
     `,
@@ -50,14 +50,14 @@ class PostsSearchRepository {
       `
       WITH selected_posts AS (
         SELECT * FROM posts
-        WHERE author_id=$1 AND id > $4 AND (title ILIKE concat('%', $5::text, '%') OR post_content ILIKE concat('%', $5::text, '%'))
+        WHERE author_id=$1 AND id > $4 AND text_tsvector @@ plainto_tsquery($5)
         ORDER BY id ASC
         OFFSET $2
         LIMIT $3
       ),
       total_posts_count_response AS (
         SELECT COUNT(*)::int AS total_posts_count FROM posts
-        WHERE author_id=$1 AND id > $4 AND (title ILIKE concat('%', $5::text, '%') OR post_content ILIKE concat('%', $5::text, '%'))
+        WHERE author_id=$1 AND id > $4 AND text_tsvector @@ plainto_tsquery($5)
       )
       SELECT * FROM selected_posts, total_posts_count_response
     `,
