@@ -35,6 +35,24 @@ class PostsStatisticsRepository {
     );
   }
 
+  async getAuthorsWithPostsInCategory(categoryId: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT email FROM users
+      WHERE EXISTS (
+        SELECT * FROM posts
+        JOIN categories_posts ON posts.id = categories_posts.post_id
+        WHERE posts.author_id = users.id AND categories_posts.category_id = $1
+      )
+    `,
+      [categoryId],
+    );
+
+    return databaseResponse.rows.map(
+      (databaseRow) => new UserModel(databaseRow),
+    );
+  }
+
   async getPostsAuthorStatistics() {
     const databaseResponse = await this.databaseService.runQuery(
       `

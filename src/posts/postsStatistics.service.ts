@@ -7,11 +7,17 @@ export default class PostsStatisticsService {
     private readonly postsStatisticsRepository: PostsStatisticsRepository,
   ) {}
 
-  public getAuthorsWithAnyPosts() {
+  getAuthorsWithAnyPosts() {
     return this.postsStatisticsRepository.getAuthorsWithAnyPosts();
   }
 
-  public getAuthorsWithoutAnyPosts() {
+  getAuthorsWithoutAnyPosts() {
     return this.postsStatisticsRepository.getAuthorsWithoutAnyPosts();
+  }
+
+  getAuthorsWithPostsInCategory(categoryId: number) {
+    return this.postsStatisticsRepository.getAuthorsWithPostsInCategory(
+      categoryId,
+    );
   }
 }
