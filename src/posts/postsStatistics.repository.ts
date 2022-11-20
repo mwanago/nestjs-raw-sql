@@ -1,10 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import PostAuthorStatisticsModel from './postAuthorStatistics.model';
+import UserModel from '../users/user.model';
 
 @Injectable()
 class PostsStatisticsRepository {
   constructor(private readonly databaseService: DatabaseService) {}
+
+  async getAuthorsWithAnyPosts() {
+    const databaseResponse = await this.databaseService.runQuery(`
+      SELECT * FROM users
+      WHERE EXISTS (
+        SELECT id FROM posts
+        WHERE posts.author_id=users.id
+      )
+    `);
+
+    return databaseResponse.rows.map(
+      (databaseRow) => new UserModel(databaseRow),
+    );
+  }
+
+  async getAuthorsWithoutAnyPosts() {
+    const databaseResponse = await this.databaseService.runQuery(`
+      SELECT * FROM users
+      WHERE NOT EXISTS (
+        SELECT id FROM posts
+        WHERE posts.author_id=users.id
+      )
+    `);
+
+    return databaseResponse.rows.map(
+      (databaseRow) => new UserModel(databaseRow),
+    );
+  }
 
   async getPostsAuthorStatistics() {
     const databaseResponse = await this.databaseService.runQuery(
