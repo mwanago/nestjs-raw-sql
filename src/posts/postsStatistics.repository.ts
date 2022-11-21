@@ -53,6 +53,23 @@ class PostsStatisticsRepository {
     );
   }
 
+  async getAuthorsWithPostsLongerThan(postLength: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT email FROM users
+      WHERE id = ANY (
+        SELECT posts.author_id FROM posts
+        WHERE length(posts.post_content) >= $1
+      )
+    `,
+      [postLength],
+    );
+
+    return databaseResponse.rows.map(
+      (databaseRow) => new UserModel(databaseRow),
+    );
+  }
+
   async getPostsAuthorStatistics() {
     const databaseResponse = await this.databaseService.runQuery(
       `

@@ -20,4 +20,10 @@ export default class PostsStatisticsService {
       categoryId,
     );
   }
+
+  getAuthorsWithPostsLongerThan(postLength: number) {
+    return this.postsStatisticsRepository.getAuthorsWithPostsLongerThan(
+      postLength,
+    );
+  }
 }
