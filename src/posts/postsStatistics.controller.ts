@@ -40,4 +40,13 @@ export default class PostsStatisticsController {
       postLength,
     );
   }
+
+  @Get('users-with-posts-shorter-than-average')
+  getUsersWithPostsShorterThanAverage(
+    @Query() { postLength }: PostLengthParam,
+  ) {
+    return this.postsStatisticsService.getAuthorsWithPostsLongerThan(
+      postLength,
+    );
+  }
 }

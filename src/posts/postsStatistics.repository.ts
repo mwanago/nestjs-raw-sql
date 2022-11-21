@@ -57,12 +57,30 @@ class PostsStatisticsRepository {
     const databaseResponse = await this.databaseService.runQuery(
       `
       SELECT email FROM users
-      WHERE id = ANY (
+      WHERE id IN (
         SELECT posts.author_id FROM posts
         WHERE length(posts.post_content) >= $1
       )
     `,
       [postLength],
+    );
+
+    return databaseResponse.rows.map(
+      (databaseRow) => new UserModel(databaseRow),
+    );
+  }
+
+  async getUsersWithPostsShorterThanAverage() {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT email FROM users
+      JOIN posts ON posts.author_id = users.id
+      GROUP BY email
+      HAVING avg(length(post_content)) < ALL (
+        SELECT avg(length(post_content)) FROM POSTS
+      )
+    `,
+      [],
     );
 
     return databaseResponse.rows.map(

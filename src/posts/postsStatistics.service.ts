@@ -26,4 +26,8 @@ export default class PostsStatisticsService {
       postLength,
     );
   }
+
+  getUsersWithPostsShorterThanAverage() {
+    return this.postsStatisticsRepository.getUsersWithPostsShorterThanAverage();
+  }
 }
