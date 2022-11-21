@@ -30,4 +30,10 @@ export default class PostsStatisticsService {
   getUsersWithPostsShorterThanAverage() {
     return this.postsStatisticsRepository.getUsersWithPostsShorterThanAverage();
   }
+
+  async getPostsShorterThanPostsOfAGivenUser(userId: number) {
+    return this.postsStatisticsRepository.getPostsShorterThanPostsOfAGivenUser(
+      userId,
+    );
+  }
 }

@@ -49,4 +49,11 @@ export default class PostsStatisticsController {
       postLength,
     );
   }
+
+  @Get('posts-shorter-than-posts-of-a-user/:id')
+  getPostsShorterThanPostsOfAGivenUser(@Query() { id: userId }: IdParams) {
+    return this.postsStatisticsService.getPostsShorterThanPostsOfAGivenUser(
+      userId,
+    );
+  }
 }

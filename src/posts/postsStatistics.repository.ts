@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import PostAuthorStatisticsModel from './postAuthorStatistics.model';
 import UserModel from '../users/user.model';
+import PostModel from './post.model';
 
 @Injectable()
 class PostsStatisticsRepository {
@@ -85,6 +86,22 @@ class PostsStatisticsRepository {
 
     return databaseResponse.rows.map(
       (databaseRow) => new UserModel(databaseRow),
+    );
+  }
+
+  async getPostsShorterThanPostsOfAGivenUser(userId: number) {
+    const databaseResponse = await this.databaseService.runQuery(
+      `
+      SELECT title FROM posts
+      WHERE length(post_content) < ALL (
+        SELECT length(post_content) FROM posts
+        WHERE author_id = $1
+      )
+    `,
+      [userId],
+    );
+    return databaseResponse.rows.map(
+      (databaseRow) => new PostModel(databaseRow),
     );
   }
 
