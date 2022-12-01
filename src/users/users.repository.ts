@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import UserModel from './user.model';
 import { CreateUserDto } from './dto/createUser.dto';
-import isRecord from '../utils/isRecord';
 import PostgresErrorCode from '../database/postgresErrorCode.enum';
 import UserAlreadyExistsException from './exceptions/userAlreadyExists.exception';
+import { isDatabaseError } from '../types/databaseError';
 
 @Injectable()
 class UsersRepository {
@@ -89,7 +89,10 @@ class UsersRepository {
       );
       return new UserModel(databaseResponse.rows[0]);
     } catch (error) {
-      if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
+      if (
+        isDatabaseError(error) &&
+        error.code === PostgresErrorCode.UniqueViolation
+      ) {
         throw new UserAlreadyExistsException(userData.email);
       }
       throw error;
@@ -117,7 +120,10 @@ class UsersRepository {
       );
       return new UserModel(databaseResponse.rows[0]);
     } catch (error) {
-      if (isRecord(error) && error.code === PostgresErrorCode.UniqueViolation) {
+      if (
+        isDatabaseError(error) &&
+        error.code === PostgresErrorCode.UniqueViolation
+      ) {
         throw new UserAlreadyExistsException(userData.email);
       }
       throw error;

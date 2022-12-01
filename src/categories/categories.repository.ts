@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import CategoryModel from './category.model';
 import CategoryDto from './category.dto';
 import CategoryWithPostsModel from './categoryWithPosts.model';
+import { isDatabaseError } from '../types/databaseError';
+import PostgresErrorCode from '../database/postgresErrorCode.enum';
 
 @Injectable()
 class CategoriesRepository {
@@ -59,17 +65,32 @@ class CategoriesRepository {
   }
 
   async create(categoryData: CategoryDto) {
-    const databaseResponse = await this.databaseService.runQuery(
-      `
+    try {
+      const databaseResponse = await this.databaseService.runQuery(
+        `
       INSERT INTO categories (
         name
       ) VALUES (
         $1
       ) RETURNING *
     `,
-      [categoryData.name],
-    );
-    return new CategoryModel(databaseResponse.rows[0]);
+        [categoryData.name],
+      );
+      return new CategoryModel(databaseResponse.rows[0]);
+    } catch (error) {
+      if (!isDatabaseError(error) || error.column !== 'id') {
+        throw error;
+      }
+      if (
+        error.code === PostgresErrorCode.UniqueViolation ||
+        error.code === PostgresErrorCode.NotNullViolation
+      ) {
+        throw new BadRequestException(
+          'The value for the id column violates the primary key constraint',
+        );
+      }
+      throw error;
+    }
   }
 
   async update(id: number, categoryData: CategoryDto) {

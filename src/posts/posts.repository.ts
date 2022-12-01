@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
@@ -142,7 +141,7 @@ class PostsRepository {
             $3
           ) RETURNING *
         `,
-        [postData.title, postData.content, authorId],
+        [null, postData.content, authorId],
       );
       return new PostModel(databaseResponse.rows[0]);
     } catch (error) {
@@ -150,14 +149,14 @@ class PostsRepository {
         !isDatabaseError(error) ||
         !['title', 'post_content'].includes(error.column)
       ) {
-        throw new InternalServerErrorException();
+        throw error;
       }
       if (error.code === PostgresErrorCode.NotNullViolation) {
         throw new BadRequestException(
           `A null value can't be set for the ${error.column} column`,
         );
       }
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
