@@ -146,14 +146,16 @@ class PostsRepository {
       );
       return new PostModel(databaseResponse.rows[0]);
     } catch (error) {
-      if (!isDatabaseError(error) || error.column !== 'id') {
+      if (
+        !isDatabaseError(error) ||
+        !['title', 'post_content'].includes(error.column)
+      ) {
         throw new InternalServerErrorException();
       }
-      if (
-        error.code === PostgresErrorCode.UniqueViolation ||
-        error.code === PostgresErrorCode.NotNullViolation
-      ) {
-        throw new BadRequestException('A wrong id was provided');
+      if (error.code === PostgresErrorCode.NotNullViolation) {
+        throw new BadRequestException(
+          `A null value can't be set for the ${error.column} column`,
+        );
       }
       throw new InternalServerErrorException();
     }
