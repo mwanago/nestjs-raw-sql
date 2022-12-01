@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import DatabaseService from '../database/database.service';
@@ -12,6 +13,7 @@ import { PoolClient } from 'pg';
 import PostgresErrorCode from '../database/postgresErrorCode.enum';
 import isRecord from '../utils/isRecord';
 import getDifferenceBetweenArrays from '../utils/getDifferenceBetweenArrays';
+import { isDatabaseError } from '../types/databaseError';
 
 @Injectable()
 class PostsRepository {
@@ -127,21 +129,34 @@ class PostsRepository {
   }
 
   async create(postData: PostDto, authorId: number) {
-    const databaseResponse = await this.databaseService.runQuery(
-      `
-      INSERT INTO posts (
-        title,
-        post_content,
-        author_id
-      ) VALUES (
-        $1,
-        $2,
-        $3
-      ) RETURNING *
-    `,
-      [postData.title, postData.content, authorId],
-    );
-    return new PostModel(databaseResponse.rows[0]);
+    try {
+      const databaseResponse = await this.databaseService.runQuery(
+        `
+          INSERT INTO posts (
+            title,
+            post_content,
+            author_id
+          ) VALUES (
+            $1,
+            $2,
+            $3
+          ) RETURNING *
+        `,
+        [postData.title, postData.content, authorId],
+      );
+      return new PostModel(databaseResponse.rows[0]);
+    } catch (error) {
+      if (!isDatabaseError(error) || error.column !== 'id') {
+        throw new InternalServerErrorException();
+      }
+      if (
+        error.code === PostgresErrorCode.UniqueViolation ||
+        error.code === PostgresErrorCode.NotNullViolation
+      ) {
+        throw new BadRequestException('A wrong id was provided');
+      }
+      throw new InternalServerErrorException();
+    }
   }
 
   async createWithCategories(postData: PostDto, authorId: number) {
