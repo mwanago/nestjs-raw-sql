@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import DatabaseService from '../database/database.service';
 import CommentModel from './comment.model';
 import CommentDto from './comment.dto';
+import { isDatabaseError } from '../types/databaseError';
+import PostgresErrorCode from '../database/postgresErrorCode.enum';
 
 @Injectable()
 class CommentsRepository {
@@ -33,8 +39,9 @@ class CommentsRepository {
   }
 
   async create(commentData: CommentDto, authorId: number) {
-    const databaseResponse = await this.databaseService.runQuery(
-      `
+    try {
+      const databaseResponse = await this.databaseService.runQuery(
+        `
       INSERT INTO comments (
         content,
         post_id,
@@ -45,9 +52,20 @@ class CommentsRepository {
         $3
       ) RETURNING *
     `,
-      [commentData.content, commentData.postId, authorId],
-    );
-    return new CommentModel(databaseResponse.rows[0]);
+        [commentData.content, commentData.postId, authorId],
+      );
+      return new CommentModel(databaseResponse.rows[0]);
+    } catch (error) {
+      if (
+        isDatabaseError(error) &&
+        error.code === PostgresErrorCode.CheckViolation
+      ) {
+        throw new BadRequestException(
+          'The length of the content needs to be greater than 0',
+        );
+      }
+      throw error;
+    }
   }
 
   async update(id: number, commentDto: CommentDto) {

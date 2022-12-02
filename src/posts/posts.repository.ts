@@ -10,7 +10,6 @@ import PostWithCategoryIdsModel from './postWithCategoryIds.model';
 import PostWithDetails from './postWithDetails.model';
 import { PoolClient } from 'pg';
 import PostgresErrorCode from '../database/postgresErrorCode.enum';
-import isRecord from '../utils/isRecord';
 import getDifferenceBetweenArrays from '../utils/getDifferenceBetweenArrays';
 import { isDatabaseError } from '../types/databaseError';
 
@@ -141,7 +140,7 @@ class PostsRepository {
             $3
           ) RETURNING *
         `,
-        [null, postData.content, authorId],
+        [postData.title, postData.content, authorId],
       );
       return new PostModel(databaseResponse.rows[0]);
     } catch (error) {
@@ -224,7 +223,7 @@ class PostsRepository {
       );
     } catch (error) {
       if (
-        isRecord(error) &&
+        isDatabaseError(error) &&
         error.code === PostgresErrorCode.ForeignKeyViolation
       ) {
         throw new BadRequestException('Category not found');
