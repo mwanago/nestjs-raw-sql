@@ -16,6 +16,7 @@ import RegisterDto from './dto/register.dto';
 import RequestWithUser from './requestWithUser.interface';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import JwtAuthenticationGuard from './jwt-authentication.guard';
+import { LoggerInterceptor } from '../utils/logger.interceptor';
 
 @Controller('authentication')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -23,6 +24,7 @@ export class AuthenticationController {
   constructor(private readonly authenticationService: AuthenticationService) {}
 
   @Post('register')
+  @UseInterceptors(LoggerInterceptor)
   async register(@Body() registrationData: RegisterDto) {
     return this.authenticationService.register(registrationData);
   }
