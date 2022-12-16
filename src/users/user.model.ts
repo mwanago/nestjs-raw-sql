@@ -1,7 +1,7 @@
 import { Exclude } from 'class-transformer';
 import AddressModel from './address.model';
 
-type UserModelData = {
+export type UserModelData = {
   id: number;
   name: string;
   email: string;

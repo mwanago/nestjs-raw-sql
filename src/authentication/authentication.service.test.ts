@@ -36,9 +36,7 @@ describe('The AuthenticationService', () => {
       ],
     }).compile();
 
-    authenticationService = await module.get<AuthenticationService>(
-      AuthenticationService,
-    );
+    authenticationService = await module.get(AuthenticationService);
   });
   describe('when calling the getCookieForLogOut method', () => {
     it('should return a correct string', () => {
