@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import UsersService from '../users/users.service';
 import RegisterDto from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -24,10 +29,7 @@ export class AuthenticationService {
       });
     } catch (error: unknown) {
       if (error instanceof UserAlreadyExistsException) {
-        throw new HttpException(
-          'User with that email already exists',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new BadRequestException('User with that email already exists');
       }
       throw new HttpException(
         'Something went wrong',

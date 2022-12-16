@@ -20,7 +20,7 @@ export class RegisterDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => AddressDto)
-  address: AddressDto;
+  address?: AddressDto;
 }
 
 export default RegisterDto;
