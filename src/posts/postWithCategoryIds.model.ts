@@ -1,6 +1,6 @@
 import PostModel, { PostModelData } from './post.model';
 
-interface PostWithCategoryIdsModelData extends PostModelData {
+export interface PostWithCategoryIdsModelData extends PostModelData {
   category_ids: number[] | null;
 }
 class PostWithCategoryIdsModel extends PostModel {
