@@ -8,6 +8,7 @@ import PostWithCategoryIdsModel, {
 import PostsRepository from './posts.repository';
 import PostsStatisticsRepository from './postsStatistics.repository';
 import PostsSearchRepository from './postsSearch.repository';
+import PostModel, { PostModelData } from './post.model';
 
 describe('The PostsService', () => {
   let postData: PostDto;
@@ -68,6 +69,37 @@ describe('The PostsService', () => {
       expect(result.title).toBe(sqlQueryResult.title);
       expect(result.content).toBe(sqlQueryResult.post_content);
       expect(result.categoryIds).toBe(sqlQueryResult.category_ids);
+    });
+  });
+  describe('when calling the create method without category ids', () => {
+    let sqlQueryResult: PostModelData;
+    beforeEach(() => {
+      postData = {
+        title: 'Hello world!',
+        content: 'Lorem ipsum',
+      };
+      sqlQueryResult = {
+        id: 1,
+        author_id: 2,
+        title: postData.title,
+        post_content: postData.content,
+      };
+      runQueryMock.mockResolvedValue({
+        rows: [sqlQueryResult],
+      });
+    });
+    it('should return an instance of the PostModel', async () => {
+      const result = await postsService.createPost(postData, 1);
+
+      expect(result instanceof PostModel).toBe(true);
+    });
+    it('should return an object with the correct properties', async () => {
+      const result = await postsService.createPost(postData, 1);
+
+      expect(result.id).toBe(sqlQueryResult.id);
+      expect(result.authorId).toBe(sqlQueryResult.author_id);
+      expect(result.title).toBe(sqlQueryResult.title);
+      expect(result.content).toBe(sqlQueryResult.post_content);
     });
   });
 });
